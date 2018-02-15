@@ -830,7 +830,7 @@ class MysqlAdapter extends PdoAdapter implements AdapterInterface
      * @param string $sqlTypeDef
      * @throws \RuntimeException
      * @internal param string $sqlType SQL type
-     * @returns string Phinx type
+     * @returns array Phinx type
      */
     public function getPhinxType($sqlTypeDef)
     {

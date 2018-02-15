@@ -2,6 +2,7 @@
 
 namespace Test\Phinx\Db\Adapter;
 
+use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Adapter\PostgresAdapter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -528,7 +529,8 @@ class PostgresAdapterTest extends TestCase
               ->addColumn('column12', 'datetime')
               ->addColumn('column13', 'binary')
               ->addColumn('column14', 'string', ['limit' => 10])
-              ->addColumn('column15', 'interval');
+              ->addColumn('column15', 'interval')
+              ->addColumn('column22', 'enum', ['values' => ['three', 'four']]);
         $pendingColumns = $table->getPendingColumns();
         $table->save();
         $columns = $this->adapter->getColumns('t');
@@ -703,6 +705,32 @@ class PostgresAdapterTest extends TestCase
         $this->assertFalse($this->adapter->hasSchema('bar'));
     }
 
+    public function testAddEnumColumn()
+    {
+        $table = new \Phinx\Db\Table('table1', [], $this->adapter);
+        $table->save();
+        $this->assertFalse($table->hasColumn('enum_column'));
+        $table->addColumn('enum_column', 'enum', ['values' => ['one', 'two']])
+            ->save();
+        $rows = $this->adapter->fetchAll('SHOW COLUMNS FROM table1');
+        $this->assertEquals("enum('one','two')", $rows[1]['Type']);
+    }
+
+    public function testEnumColumnValuesFilledUpFromSchema()
+    {
+        // Creating column with values
+        (new \Phinx\Db\Table('table1', [], $this->adapter))
+            ->addColumn('enum_column', 'enum', ['values' => ['one', 'two']])
+            ->save();
+
+        // Reading them back
+        $table = new \Phinx\Db\Table('table1', [], $this->adapter);
+        $columns = $table->getColumns();
+        $enumColumn = end($columns);
+        $this->assertEquals(AdapterInterface::PHINX_TYPE_ENUM, $enumColumn->getType());
+        $this->assertEquals(['one', 'two'], $enumColumn->getValues());
+    }
+
     /**
      * @expectedException \RuntimeException
      * @expectedExceptionMessage The type: "idontexist" is not supported
@@ -748,6 +776,8 @@ class PostgresAdapterTest extends TestCase
         $this->assertEquals('uuid', $this->adapter->getPhinxType('uuid'));
 
         $this->assertEquals('interval', $this->adapter->getPhinxType('interval'));
+
+        $this->assertEquals('enum', $this->adapter->getPhinxType('enum'));
     }
 
     public function testCreateTableWithComment()

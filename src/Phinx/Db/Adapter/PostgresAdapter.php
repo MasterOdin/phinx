@@ -767,6 +767,8 @@ class PostgresAdapter extends PdoAdapter implements AdapterInterface
                 return ['name' => 'geography', 'type' => 'linestring', 'srid' => 4326];
             case static::PHINX_TYPE_POLYGON:
                 return ['name' => 'geography', 'type' => 'polygon', 'srid' => 4326];
+            case static::PHINX_TYPE_ENUM:
+                return ['name' => 'enum'];
             default:
                 if ($this->isArrayType($type)) {
                     return ['name' => $type];
@@ -842,6 +844,8 @@ class PostgresAdapter extends PdoAdapter implements AdapterInterface
                 return static::PHINX_TYPE_INET;
             case 'macaddr':
                 return static::PHINX_TYPE_MACADDR;
+            case 'enum':
+                return static::PHINX_TYPE_ENUM;
             default:
                 throw new \RuntimeException('The PostgreSQL type: "' . $sqlType . '" is not supported');
         }
