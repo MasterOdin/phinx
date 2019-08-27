@@ -1,7 +1,5 @@
 language: php
 
-dist: trusty
-
 addons:
   postgresql: "9.2"
 
