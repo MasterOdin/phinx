@@ -8,15 +8,16 @@ services:
   - mysql
 
 php:
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
   - 7.3
   - 7.4snapshot
 
 env:
   global:
     - DEFAULT=1
-
-install:
-    - sudo apt install -y libsqlite3-0
 
 before_script:
     - if [[ $PREFER_LOWEST != 1 ]]; then travis_retry composer update --no-interaction --prefer-stable; fi
