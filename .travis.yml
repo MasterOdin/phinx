@@ -16,7 +16,7 @@ env:
     - DEFAULT=1
 
 install:
-    - sudo apt isntall libsqlite3-0
+    - sudo apt install -y libsqlite3-0
 
 before_script:
     - if [[ $PREFER_LOWEST != 1 ]]; then travis_retry composer update --no-interaction --prefer-stable; fi
