@@ -616,13 +616,15 @@ PCRE_PATTERN;
         $columns = [];
 
         $rows = $this->getTableInfo($tableName);
+        var_dump($rows);
+        var_dump($this->getTableInfo($tableName, 'index_list'));
         $identity = $this->resolveIdentity($tableName);
 
         foreach ($rows as $columnInfo) {
             $column = new Column();
             $type = $this->getPhinxType($columnInfo['type']);
             $default = $this->parseDefaultValue($columnInfo['dflt_value'], $type['name']);
-            
+
             $column->setName($columnInfo['name'])
                    ->setNull($columnInfo['notnull'] !== '1')
                    ->setDefault($default)
@@ -1052,7 +1054,7 @@ PCRE_PATTERN;
         if (array_diff($primaryKey, $columns) || array_diff($columns, $primaryKey)) {
             return false;
         }
-        
+
         return true;
     }
 
