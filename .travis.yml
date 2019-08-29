@@ -17,6 +17,9 @@ env:
   global:
     - DEFAULT=1
 
+install:
+    - sudo apt isntall libsqlite
+
 before_script:
     - if [[ $PREFER_LOWEST != 1 ]]; then travis_retry composer update --no-interaction --prefer-stable; fi
     - if [[ $PREFER_LOWEST == 1 ]]; then travis_retry composer update --no-interaction --prefer-stable --prefer-lowest; fi
