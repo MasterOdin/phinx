@@ -46,6 +46,7 @@ use Phinx\Db\Table\ForeignKey;
 use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table;
 use Phinx\Db\Util\AlterInstructions;
+use Phinx\Util\Literal;
 use Phinx\Migration\MigrationInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -241,10 +242,17 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
             $sql .= ' VALUES (' . implode(', ', array_map([$this, 'quoteValue'], $row)) . ');';
             $this->output->writeln($sql);
         } else {
-            $sql .= ' VALUES (' . implode(', ', array_fill(0, count($columns), '?')) . ')';
+            $sql .= ' VALUES (' . implode(', ', array_map([$this, 'prepareValue'], $row)) . ')';
             $stmt = $this->getConnection()->prepare($sql);
-            $stmt->execute(array_values($row));
+            $stmt->execute(array_values(array_filter($row, function ($value) { return !($value instanceof Literal); })));
         }
+    }
+
+    private function prepareValue($value) {
+        if ($value instanceof Literal) {
+            return $value;
+        }
+        return '?';
     }
 
     /**
@@ -255,7 +263,7 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
      */
     private function quoteValue($value)
     {
-        if (is_numeric($value)) {
+        if (is_numeric($value) || $value instanceof Literal) {
             return $value;
         }
 
@@ -298,7 +306,7 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
             $this->output->writeln($sql);
         } else {
             $count_keys = count($keys);
-            $query = '(' . implode(', ', array_fill(0, $count_keys, '?')) . ')';
+            $query = '(' . implode(', ', array_map([$this, 'prepareValue'], $current)) . ')';
             $count_vars = count($rows);
             $queries = array_fill(0, $count_vars, $query);
             $sql .= implode(',', $queries);
@@ -307,10 +315,12 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
 
             foreach ($rows as $row) {
                 foreach ($row as $v) {
-                    if (is_bool($v)) {
-                        $vals[] = $this->castToBool($v);
-                    } else {
-                        $vals[] = $v;
+                    if (!($v instanceof Literal)) {
+                        if (is_bool($v)) {
+                            $vals[] = $this->castToBool($v);
+                        } else {
+                            $vals[] = $v;
+                        }
                     }
                 }
             }
