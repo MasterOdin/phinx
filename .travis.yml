@@ -55,3 +55,21 @@ cache:
 
 notifications:
   email: false
+
+before_deploy:
+  # have to move symfony/yaml from devDependency to dependency so box packs it
+  - composer require symfony/yaml
+  - composer global require humbug/box:^3.8
+  - ~/.composer/vendor/bin/box compile
+
+deploy:
+  provider: releases
+  api_key:
+    secure: ni6VQOYH6W/8rBt2FhhFnQ34tgTRxs9TMYl7FIUDt5r28Cpc1LnpSsIHbcKXINdZM9PuQy2SN+gS6+z/q+NJDUzteaaMq+LlOXrzECcTrh8T1CZ78qR3F6rp4IVWbW+89FE9OaM7p68LF2boYqlyWDbjBBXadZeHFyoyEZCdpMwhwkJYvaT3jY02MR8Rxd6nauCwGAuxCge16N4W0R1FuntndZuX91JkHJ1TcoV1FyVeFvncuSUgbEroWUf83dciUzczSKHcFyEbyVNBzS7hXiXFkvundLM7uTbh3e1biWQaIHk/rm453z9rSQv7VlDkY9jVEvxl0qy5Zo/I863mnyAKlRvYe6IqDzV2I5LPxp2PNuWVYObqZZOvJugEJ/wdu/lV0L54HJ9bEDfsKIkEA3JI0US1TnU0Xm13JJbKeWQsBRDc4YpGUPafuG3Ny0lNPVXEzDG/2GLyQsR9YvTlkgVPJcSe6OEKw3lrQC7opR3yf1RuQ7xxIG+ECI39OK9A8UClBk+z7lotw7cBF4cZ0GrwY21IlLOIcipFzPCYJ8BRFS8xkJ8Na2xWuIxrebKo//sLNi3tBUv0kxJYmMb+CMQVVsi2+ImThCUZa8xkKD+G9ngAuViPOVtISOYTpeqDC1cynIkovNOBqgMimfWGB0yG2Bb2kkRAbSsKEA8nAdk=
+  file: phinx.phar
+  skip_cleanup: true
+  on:
+    repo: MasterOdin/phinx
+    tags: true
+    php: 7.2
+    condition: $DEFAULT = 1 && $PREFER_LOWEST != 1
