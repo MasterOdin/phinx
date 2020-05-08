@@ -1,0 +1,38 @@
+name: MySQL 8
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  testsuite:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [7.4']
+    name: PHP ${{ matrix.php-version }}
+
+    steps:
+    - name: Setup MySQL
+      if: matrix.db-type == 'mysql'
+      run: |
+        docker run --rm --name=mysqld --env MYSQL_DATABASE=phinx_testing --env MYSQL_ALLOW_EMPTY_PASSWORD=yes -d mysql:8 --default-authentication-plugin=mysql_native_password
+
+    - uses: actions/checkout@v2
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Run PHPUnit
+      env:
+        TESTS_PHINX_DB_ADAPTER_POSTGRES_ENABLED: false
+        TESTS_PHINX_DB_ADAPTER_SQLITE_ENABLED: false
+      run: vendor/bin/phpunit --verbose
