@@ -14,15 +14,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: [7.4']
+        php-version: ['7.4']
     name: PHP ${{ matrix.php-version }}
 
     steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up PHP ${{ matrix.php-versions }}
+      uses: shivammathur/setup-php@master
+      with:
+        php-version: ${{ matrix.php-versions }}
+        overage: xdebug
+
     - name: Setup MySQL
       run: |
         docker run --rm --name=mysqld --env MYSQL_DATABASE=phinx_testing --env MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 -d mysql:8 --default-authentication-plugin=mysql_native_password
-
-    - uses: actions/checkout@v2
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -38,4 +44,4 @@ jobs:
         TESTS_PHINX_DB_ADAPTER_MYSQL_PASSWORD: ""
         TESTS_PHINX_DB_ADAPTER_MYSQL_DATABASE: "phinx_testing"
         TESTS_PHINX_DB_ADAPTER_MYSQL_PORT: "3306"
-      run: vendor/bin/phpunit --verbose --no-configuration --bootstrap tests\phpunit-bootstrap.php
+      run: vendor/bin/phpunit --verbose --no-configuration --bootstrap tests/phpunit-bootstrap.php
