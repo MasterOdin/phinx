@@ -32,6 +32,6 @@ jobs:
 
     - name: Run PHPUnit
       env:
-        TESTS_PHINX_DB_ADAPTER_POSTGRES_ENABLED: false
-        TESTS_PHINX_DB_ADAPTER_SQLITE_ENABLED: false
+        TESTS_PHINX_DB_ADAPTER_POSTGRES_ENABLED: "false"
+        TESTS_PHINX_DB_ADAPTER_SQLITE_ENABLED: "false"
       run: vendor/bin/phpunit --verbose
