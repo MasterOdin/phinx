@@ -21,7 +21,7 @@ jobs:
     - name: Setup MySQL
       if: matrix.db-type == 'mysql'
       run: |
-        docker run --rm --name=mysqld --env MYSQL_DATABASE=phinx_testing --env MYSQL_ALLOW_EMPTY_PASSWORD=yes -d mysql:8 --default-authentication-plugin=mysql_native_password
+        docker run --rm --name=mysqld --env MYSQL_DATABASE=phinx_testing --env MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 -d mysql:8 --default-authentication-plugin=mysql_native_password
 
     - uses: actions/checkout@v2
 
