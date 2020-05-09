@@ -41,7 +41,7 @@ class Create extends AbstractCommand
         parent::configure();
 
         $this->setDescription('Create a new migration')
-            ->addArgument('name', InputArgument::REQUIRED, 'What is the name of the migration (in CamelCase)?')
+            ->addArgument('name', InputArgument::OPTIONAL, 'Class name of the migration (in CamelCase)')
             ->setHelp(sprintf(
                 '%sCreates a new database migration%s',
                 PHP_EOL,
@@ -165,12 +165,19 @@ class Create extends AbstractCommand
 
         $path = realpath($path);
         $className = $input->getArgument('name');
+        if ($className === null) {
+            $className = "V" . Util::getCurrentTimestamp() . "Migration";
+            $fileName = Util::getCurrentTimestamp() . '_migration.php';
+        } else {
+            if (!Util::isValidPhinxClassName($className)) {
+                throw new InvalidArgumentException(sprintf(
+                    'The migration class name "%s" is invalid. Please use CamelCase format.',
+                    $className
+                ));
+            }
 
-        if (!Util::isValidPhinxClassName($className)) {
-            throw new InvalidArgumentException(sprintf(
-                'The migration class name "%s" is invalid. Please use CamelCase format.',
-                $className
-            ));
+            // Compute the file path
+            $fileName = Util::mapClassNameToFileName($className);
         }
 
         if (!Util::isUniqueMigrationClassName($className, $path)) {
@@ -181,8 +188,6 @@ class Create extends AbstractCommand
             ));
         }
 
-        // Compute the file path
-        $fileName = Util::mapClassNameToFileName($className);
         $filePath = $path . DIRECTORY_SEPARATOR . $fileName;
 
         if (is_file($filePath)) {
