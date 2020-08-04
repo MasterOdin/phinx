@@ -68,7 +68,7 @@ class ActionSplitter
      * @return \Phinx\Db\Plan\AlterTable[] A list of AlterTable that can be executed without
      * this type of conflict
      */
-    public function split(AlterTable $alter)
+    public function __invoke(AlterTable $alter)
     {
         $conflictActions = array_filter($alter->getActions(), function ($action) {
             return $action instanceof $this->conflictClass;
@@ -77,9 +77,10 @@ class ActionSplitter
         $originalAlter = new AlterTable($alter->getTable());
         $newAlter = new AlterTable($alter->getTable());
 
-        $actions = array_map(function ($action) use ($conflictActions) {
+        foreach ($alter->getActions() as $action) {
             if (!$action instanceof $this->conflictClassDual) {
-                return [$action, null];
+                $originalAlter->addAction($action);
+                continue;
             }
 
             $found = false;
@@ -92,19 +93,9 @@ class ActionSplitter
             }
 
             if ($found) {
-                return [null, $action];
-            }
-
-            return [$action, null];
-        }, $alter->getActions());
-
-        foreach ($actions as $pair) {
-            [$original, $new] = $pair;
-            if ($original) {
-                $originalAlter->addAction($original);
-            }
-            if ($new) {
-                $newAlter->addAction($new);
+                $newAlter->addAction($action);
+            } else {
+                $originalAlter->addAction($action);
             }
         }
 
