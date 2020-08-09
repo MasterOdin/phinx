@@ -2,6 +2,7 @@
 
 namespace Test\Phinx\Db\Adapter;
 
+use PDOException;
 use Phinx\Db\Adapter\AbstractAdapter;
 use Phinx\Db\Adapter\PostgresAdapter;
 use Phinx\Db\Adapter\UnsupportedColumnTypeException;
@@ -497,6 +498,39 @@ class PostgresAdapterTest extends TestCase
         $this->assertTrue($this->adapter->hasTable('schema1.table2'));
 
         $this->adapter->dropSchema('schema1');
+    }
+
+    public function testRenameTableWithSameSchema()
+    {
+        $this->adapter->createSchema('schema1');
+        try {
+            $table = new \Phinx\Db\Table('schema1.table1', [], $this->adapter);
+            $table->save();
+            $this->assertTrue($this->adapter->hasTable('schema1.table1'));
+            $this->assertFalse($this->adapter->hasTable('schema1.table2'));
+            $this->adapter->renameTable('schema1.table1', 'schema1.table2');
+            $this->assertFalse($this->adapter->hasTable('schema1.table1'));
+            $this->assertTrue($this->adapter->hasTable('schema1.table2'));
+        } finally {
+            $this->adapter->dropSchema('schema1');
+        }
+    }
+
+    public function testRenameTableWithDifferentSchema()
+    {
+        $this->adapter->createSchema('schema1');
+        try {
+            $table = new \Phinx\Db\Table('schema1.table1', [], $this->adapter);
+            $table->save();
+            $this->assertTrue($this->adapter->hasTable('schema1.table1'));
+            $this->assertFalse($this->adapter->hasTable('schema1.table2'));
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Cannot rename table into a different schema');
+            $this->adapter->renameTable('schema1.table1', 'schema2.table2');
+        } finally {
+            $this->adapter->dropSchema('schema1');
+        }
+
     }
 
     public function testAddColumn()

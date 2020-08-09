@@ -351,6 +351,15 @@ class PostgresAdapter extends PdoAdapter
      */
     protected function getRenameTableInstructions($tableName, $newTableName)
     {
+        if (strpos($newTableName, '.') !== false) {
+            $schema1 = $this->getSchemaName($tableName);
+            $schema2 = $this->getSchemaName($newTableName);
+            if ($schema1['schema'] !== $schema2['schema']) {
+                throw new InvalidArgumentException('Cannot rename table into a different schema');
+            }
+            $newTableName = $schema2['table'];
+        }
+
         $this->updateCreatedTableName($tableName, $newTableName);
         $sql = sprintf(
             'ALTER TABLE %s RENAME TO %s',
